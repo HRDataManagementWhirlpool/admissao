@@ -23,10 +23,10 @@ def main():
             for celula in conferencia['A'][1:]: # Verifica se o valor do RE a ser conferido é igual ao RE dentro da tabela
                 if celula.value == re.value: # Caso seja igual
                     if re.value not in resConferidos: # E não esteja duplicado
-                        resConferidos.append(re.value)
-                        array = SheetsController.get_data(celula.row, conferencia, contas, dependentes, eSocial, workForce, re.value, nomesConferidos)
-                        SheetsController.fill_sheet(checkList, re.row, array)
-    SheetsController.savefile(folder_path, check)
+                        resConferidos.append(re.value) # Insere o RE na lista
+                        array = SheetsController.get_data(celula.row, conferencia, contas, dependentes, eSocial, workForce, re.value, nomesConferidos) # Armazena os valores em uma lista
+                        SheetsController.fill_sheet(checkList, re.row, array) # Preenche as informações na planilha
+    SheetsController.savefile(folder_path, check) # Salva o arquivo e finaliza o processo
 
 if __name__ == "__main__":
     main()
