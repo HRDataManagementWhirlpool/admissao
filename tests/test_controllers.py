@@ -1,6 +1,6 @@
 import sys
 sys.path.append(".")
-from src.models import pessoa
+from src.controllers.sheets import SheetsController
 
 def test_test():
     pass

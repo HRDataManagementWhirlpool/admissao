@@ -2,7 +2,6 @@ import sys
 from tkinter import filedialog
 sys.path.append(".")
 from src.models.sheets import Sheets
-from src.controllers.sheets import SheetsController
 
 def test_models_load_sheet_function():
     test_pass = True
