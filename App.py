@@ -1,7 +1,6 @@
 import time
 from src.models.sheets import SheetsModel
 from src.controllers.sheets import SheetsController
-from src.views.hub import App
 
 import customtkinter
 import os
@@ -21,7 +20,7 @@ class App(customtkinter.CTk):
         self.grid_columnconfigure(1, weight=1)
 
         # load images with light and dark mode image
-        image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_images")
+        image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "media")
         self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "CustomTkinter_logo_single.png")), size=(26, 26))
         self.image_icon_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "image_icon_light.png")), size=(20, 20))
         self.home_image = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "home_dark.png")),
@@ -100,8 +99,11 @@ class App(customtkinter.CTk):
         customtkinter.set_appearance_mode(new_appearance_mode)
         
     def start_process(self):
-        self.loading_indicator = customtkinter.CTkLabel(self.second_frame, text="Processando...")
-        self.loading_indicator.grid(row=1, column=0, pady=10, sticky="nsew")
+        self.second_frame_button_1.configure(state="disabled")
+        self.loading_bar = customtkinter.CTkProgressBar(self.second_frame)
+        self.loading_bar.grid(row=2, column=0, padx=150, pady=(10, 10), sticky="ew")
+        self.loading_bar.configure(determinate_speed=5)
+        self.loading_bar.start()
         threading.Thread(target=self.process_in_background).start()
         
     def process_in_background(self):
@@ -114,17 +116,18 @@ class App(customtkinter.CTk):
             workForce = SheetsModel(folder_path, 'WorkForce').load_sheet()
             checkList, check = SheetsModel(folder_path, 'Check').clone_sheet('Conferência')
             if not all([conferencia, contas, dependentes, eSocial,workForce, checkList]):
-                print('Algumas planilhas não foram encontradas. Verifique os nomes dos arquivos.')
-                self.textbox2.insert("0.0", "Erro:\n\n" + "Algumas planilhas não foram encontradas. Verifique os nomes dos arquivos.")
+                self.status_indicator = customtkinter.CTkLabel(self.second_frame, text="Algumas planilhas não foram encontradas. Verifique os nomes dos arquivos", text_color="orange")
+                self.status_indicator.grid(row=3, column=0, pady=10, sticky="nsew")
                 return
             SheetsController(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check)
+        except:
+            self.status_indicator = customtkinter.CTkLabel(self.second_frame, text="Ocorreu um erro!", text_color="red")
+        else:
+            self.status_indicator = customtkinter.CTkLabel(self.second_frame, text="Processo concluído!", text_color="green")
         finally:
-            self.loading_indicator.grid_forget()
-            self.success_indicator = customtkinter.CTkLabel(self.second_frame, text="Processo concluído!", text_color="green")
-            self.success_indicator.grid(row=2, column=0, pady=10, sticky="nsew")
-            time.sleep(5)
-            self.success_indicator.grid_forget()
-
+            self.loading_bar.grid_forget()
+            self.second_frame_button_1.configure(state="enabled", require_redraw=True)
+            self.status_indicator.grid(row=3, column=0, pady=10, sticky="nsew")
         
 if __name__ == "__main__":
     app = App()
