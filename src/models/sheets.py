@@ -1,7 +1,7 @@
 import os
 from openpyxl import load_workbook
 
-class Sheets:
+class SheetsModel:
     def __init__(self, folder_path, file_keyword):
         self.folder_path = folder_path
         self.file_keyword = file_keyword

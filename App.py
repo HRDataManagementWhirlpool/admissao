@@ -1,7 +1,12 @@
+import time
+from src.models.sheets import SheetsModel
+from src.controllers.sheets import SheetsController
+from src.views.hub import App
+
 import customtkinter
 import os
 from PIL import Image
-
+import threading
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -9,6 +14,7 @@ class App(customtkinter.CTk):
 
         self.title("SmartHUB")
         self.geometry("700x350")
+        self.minsize(700,350)
 
         # set grid layout 1x2
         self.grid_rowconfigure(0, weight=1)
@@ -60,11 +66,11 @@ class App(customtkinter.CTk):
         
         self.textbox2 = customtkinter.CTkTextbox(self.second_frame, width=250)
         self.textbox2.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-        self.textbox2.insert("0.0", "Como Funciona\n\n" + "Basta iniciar o processo e inserir o diretório onde estão localizados os arquivos de para a realização da conferência\n\nOs arquivos necessários são: relatório de Agência e conta, relatório de conferência, relatório do eSocial, relatório do WorkForce, relatório de dependentes e a cópia do Check List com os REs que deseja verificar.\n\nNo final do processo, será gerado um arquivo excel com os dados conferidos.")
+        self.textbox2.insert("0.0", "Como Funciona\n\n" + "Basta iniciar o processo e inserir o diretório onde estão localizados os arquivos de para a realização da conferência\n\nOs arquivos necessários são: relatório de Agência e conta, relatório de conferência, relatório do eSocial, relatório do WorkForce, relatório de dependentes e a cópia do Check List com os REs que deseja verificar.\n\nNo final do processo, será gerado um arquivo excel com os dados conferidos na mesma pasta dos relatórios.")
 
         
-        self.second_frame_button_1 = customtkinter.CTkButton(self.second_frame, text="Iniciar processo", image=self.image_icon_image, compound="right", command=self.select_directory)
-        self.second_frame_button_1.grid(row=1, column=0, padx=20, pady=20, sticky="ew")
+        self.second_frame_button_1 = customtkinter.CTkButton(self.second_frame, text="Iniciar processo", image=self.add_user_image, compound="right", command=self.start_process)
+        self.second_frame_button_1.grid(row=1, column=0, padx=100, pady=20, sticky="ew")
 
         # select default frame
         self.select_frame_by_name("home")
@@ -93,11 +99,33 @@ class App(customtkinter.CTk):
     def change_appearance_mode_event(self, new_appearance_mode):
         customtkinter.set_appearance_mode(new_appearance_mode)
         
-    def select_directory(self):
-        folder_path = customtkinter.filedialog.askdirectory()
-        return folder_path
+    def start_process(self):
+        self.loading_indicator = customtkinter.CTkLabel(self.second_frame, text="Processando...")
+        self.loading_indicator.grid(row=1, column=0, pady=10, sticky="nsew")
+        threading.Thread(target=self.process_in_background).start()
+        
+    def process_in_background(self):
+        try:
+            folder_path = customtkinter.filedialog.askdirectory()
+            conferencia = SheetsModel(folder_path, 'Conferência').load_sheet()
+            contas = SheetsModel(folder_path, 'Contas').load_sheet() 
+            dependentes = SheetsModel(folder_path, 'Dependente').load_sheet()
+            eSocial = SheetsModel(folder_path, 'eSocial').load_sheet()
+            workForce = SheetsModel(folder_path, 'WorkForce').load_sheet()
+            checkList, check = SheetsModel(folder_path, 'Check').clone_sheet('Conferência')
+            if not all([conferencia, contas, dependentes, eSocial,workForce, checkList]):
+                print('Algumas planilhas não foram encontradas. Verifique os nomes dos arquivos.')
+                self.textbox2.insert("0.0", "Erro:\n\n" + "Algumas planilhas não foram encontradas. Verifique os nomes dos arquivos.")
+                return
+            SheetsController(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check)
+        finally:
+            self.loading_indicator.grid_forget()
+            self.success_indicator = customtkinter.CTkLabel(self.second_frame, text="Processo concluído!", text_color="green")
+            self.success_indicator.grid(row=2, column=0, pady=10, sticky="nsew")
+            time.sleep(5)
+            self.success_indicator.grid_forget()
 
-
+        
 if __name__ == "__main__":
     app = App()
     app.mainloop()
