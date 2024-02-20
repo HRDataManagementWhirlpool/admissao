@@ -203,7 +203,7 @@ class App(customtkinter.CTk):
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Aprendizes"), text="Processo concluído!", text_color="green")
         finally:
             self.loading_bar.grid_forget()
-            self.tabview_button.configure(state="enabled", require_redraw=True)
+            self.tabview_button.configure(state="enabled", cursor="hand2", require_redraw=True)
             self.status_indicator.grid(row=2, column=0, pady=15, sticky="nsew")
 
     def start_docusign_hourly_process(self):
@@ -228,7 +228,7 @@ class App(customtkinter.CTk):
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Horistas"), text="Processo concluído!", text_color="green")
         finally:
             self.loading_bar.grid_forget()
-            self.tabview_button2.configure(state="enabled", require_redraw=True)
+            self.tabview_button2.configure(state="enabled", cursor="hand2", require_redraw=True)
             self.status_indicator.grid(row=2, column=0, pady=15, sticky="nsew")
 
     def start_docusign_monthly_process(self):
@@ -253,7 +253,7 @@ class App(customtkinter.CTk):
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Mensalistas"), text="Processo concluído!", text_color="green")
         finally:
             self.loading_bar.grid_forget()
-            self.tabview_button3.configure(state="enabled", require_redraw=True)
+            self.tabview_button3.configure(state="enabled", cursor="hand2", require_redraw=True)
             self.status_indicator.grid(row=2, column=0, pady=15, sticky="nsew")
 
 if __name__ == "__main__":
