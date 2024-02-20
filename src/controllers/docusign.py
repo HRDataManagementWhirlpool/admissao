@@ -2,157 +2,209 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import expected_conditions as EC
+
 import time
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class DocusignController:
-    def start_docusign_apprentice_process(document):
-        options = webdriver.ChromeOptions()
-        options.add_argument(r"--user-data-dir=C:\Users\DESOUR10\AppData\Local\Google\Chrome\User Data")
-        options.add_argument(r'--profile-directory=Default')
-
-        driver = webdriver.Chrome(options=options)
-
-        driver.get("https://apps.docusign.com/send/documents")
+    def __init__(self):
+        self.SITE_LINK = {
+            "home": "https://apps.docusign.com/send/documents",
+            "templates": "https://apps.docusign.com/send/templates"
+        }
+        self.SITE_MAP = {
+            "buttons": {
+                "login_btn":{
+                    "xpath": "//button[@type='submit']",
+                },
+                "username_btn": {
+                    "xpath": "//button[@data-qa='submit-username']",
+                    "name": "submit-username"
+                },
+                "password_btn": {
+                    "xpath": "//button[@data-qa='submit-password']",
+                },
+                "template_btn": {
+                    "xpath": "//button[@data-qa='header-TEMPLATES-tab-button']"
+                },
+                "use_template_btn": {
+                    "xpath": "//button[@data-qa='templates-main-list-row-b4024bba-b898-4c4d-a1c5-3ef9b408ee3c-actions-use']"
+                },
+                "document_next_btn": {
+                    "xpath": "//button[@data-qa='footer-add-fields-link']"
+                },
+                "zoom_btn": {
+                    "xpath": "//button[@data-qa='zoom-button']",
+                    "zoom_50": "//button[@data-qa='zoom-level-50']"
+                },
+                "rubrica_btn": {
+                    "xpath": "//button[@data-qa='Initial']"
+                },
+                "assinatura_btn": {
+                    "xpath": "//button[@data-qa='Signature']"
+                },
+                "pages_to_sign_btn": {
+                    "xpath": "//button[@data-qa='tagger-documents']"
+                },
+                "popup_btn": {
+                    "xpath": "//button[@data-qa='modal-cancel-btn']"
+                }
+            },
+            "inputs": {
+                "username": {
+                    "xpath": "//input[@data-qa='username']",
+                    "keys": os.getenv('LOGIN')
+                },
+                "password": {
+                    "xpath": "//input[@data-qa='password']",
+                    "keys": os.getenv('SENHA')
+                },
+                "template_searchbar": {
+                    "xpath": "//input[@data-qa='templates-main-header-form-input']",
+                    "keys": "Modelo de Contrato - CC"
+                },
+                "document_send": {
+                    "id": "windows-drag-handler-wrapper",
+                },
+                "document_subject": {
+                    "xpath": "//input[@data-qa='prepare-subject']",
+                    "keys": "Contrato Teste"
+                },
+                "document_message": {
+                    "xpath": "//textarea[@data-qa='prepare-message']",
+                    "keys": "Mensagem Teste"
+                },
+                "pages_area": {
+                    "xpath": "//div[@data-qa='document-accordion-region']"
+                },
+                "pages_signed": {
+                    "xpath": "//div[@data-qa='indicator-tag']"
+                },
+            }
+        }
         
-        try:
-            DocusignController.docusign_login(driver)
-        except:
-            return print("não foi possível efetuar o login")
-        else:
-            try:
-                DocusignController.select_template(driver)
-            except:
-                return print("não foi possível selecionar o modelo do contrato")
-            else:
-                try:
-                    DocusignController.select_document_to_sign(driver, document)
-                except:
-                    return print(f"não foi possível selecionar o arquivo: {document}")
-                else:
-                    try:
-                        DocusignController.sign_document_select_zoom(driver)
-                    except:
-                        return print("não foi possível alterar o zoom")
-                    else:
-                        try:
-                            campos_de_assinatura = DocusignController.start_sign_process(driver)
-                        except:
-                            return print("não foi possível finalizar o processo")
-                        else:
-                            return campos_de_assinatura
+        self.options = webdriver.ChromeOptions()
+        self.options.add_argument(r"--user-data-dir=C:\Users\DESOUR10\AppData\Local\Google\Chrome\Test Data")
+        self.options.add_argument(r'--profile-directory=Default')
         
-    def docusign_login(driver):
-        element = WebDriverWait(driver, 20).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[@type='submit']"))
+        self.driver = webdriver.Chrome(options=self.options)
+        self.driver.maximize_window()
+        
+        self.wait = WebDriverWait(self.driver, 30)
+    
+    def open_website(self):
+        self.driver.get(self.SITE_LINK['templates'])
+        
+    def login(self):
+        element = self.wait.until(
+            EC.presence_of_element_located((By.XPATH, self.SITE_MAP['buttons']['login_btn']['xpath']))
         )
-        if element.text  == "NEXT":
+        if element.get_dom_attribute("data-qa")  == self.SITE_MAP['buttons']['username_btn']['name']:
+            element = self.wait.until(
+                EC.presence_of_element_located((By.XPATH, self.SITE_MAP['inputs']['username']['xpath']))
+            )
+            element.send_keys(Keys.CONTROL+"a")
+            element.send_keys(Keys.DELETE)
+            element.send_keys(self.SITE_MAP['inputs']['username']['keys'])
+            element = self.wait.until(
+                EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['buttons']['username_btn']['xpath']))
+            )
             element.click()
-            try:
-                element = WebDriverWait(driver, 5).until(
-                    EC.element_to_be_clickable((By.XPATH, "//button[@type='submit']"))
-                )
-                element.click()
-            except:
-                return print("erro no botão de login")
         else:
-            element.click()
-        
-    def select_template(driver):
-        time.sleep(4)
-        element = WebDriverWait(driver, 20).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='header-TEMPLATES-tab-button']"))
+            element = self.wait.until(
+                EC.presence_of_element_located((By.XPATH, self.SITE_MAP['inputs']['password']['xpath']))
+            )
+            element.send_keys(Keys.CONTROL+"a")
+            element.send_keys(Keys.DELETE)
+            element.send_keys(self.SITE_MAP['inputs']['password']['keys'])
+            element = self.wait.until(
+                EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['buttons']['password_btn']['xpath']))
+            ).click()
+
+    def select_template(self):
+        element = self.wait.until(
+            EC.presence_of_element_located((By.XPATH, self.SITE_MAP['inputs']['template_searchbar']['xpath']))
         )
-        element.click()
-        element = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//input[@data-qa='templates-main-header-form-input']"))
-        )
-        element.send_keys("Modelo de Contrato - CC")
+        element.send_keys(self.SITE_MAP['inputs']['template_searchbar']['keys'])
         element.send_keys(Keys.ENTER)
-        element = WebDriverWait(driver, 20).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='templates-main-list-row-b4024bba-b898-4c4d-a1c5-3ef9b408ee3c-actions-use']"))
-        )
-        element.click()
-            
-    def select_document_to_sign(driver, document):
-        element = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.ID, "windows-drag-handler-wrapper"))
+        element = self.wait.until(
+            EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['buttons']['use_template_btn']['xpath']))
+        ).click()
+        
+    def select_document_to_sign(self, document):
+        element = self.wait.until(
+            EC.presence_of_element_located((By.ID, self.SITE_MAP['inputs']['document_send']['id']))
         )
         element.find_element(By.TAG_NAME, "input").send_keys(document)
         
-        element = WebDriverWait(driver, 5).until(
-            EC.element_to_be_clickable((By.XPATH, "//input[@data-qa='prepare-subject']"))
+        element = self.wait.until(
+            EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['inputs']['document_subject']['xpath']))
         )
         element.send_keys(Keys.CONTROL+"a")
         element.send_keys(Keys.DELETE)
-        element.send_keys("Contrato teste")
-        element = WebDriverWait(driver, 5).until(
-            EC.element_to_be_clickable((By.XPATH, "//textarea[@data-qa='prepare-message']"))
-        )
-        element.send_keys(Keys.CONTROL+"a")
-        element.send_keys(Keys.DELETE)
-        element.send_keys("mensagem teste")
         
-        element = WebDriverWait(driver, 20).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='footer-add-fields-link']"))
+        element.send_keys(self.SITE_MAP['inputs']['document_subject']['keys'])
+        element = self.wait.until(
+            EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['inputs']['document_message']['xpath']))
         )
-        element.click()
-            
-    def sign_document_select_zoom(driver):
-        element = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//button[@data-qa='zoom-button']"))
+        element.send_keys(Keys.CONTROL+"a")
+        element.send_keys(Keys.DELETE)
+        element.send_keys(self.SITE_MAP['inputs']['document_message']['keys'])
+        
+        element = self.wait.until(
+            EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['buttons']['document_next_btn']['xpath']))
+        ).click()
+
+    def sign_document_select_zoom(self):
+        self.wait.until(
+            EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['buttons']['zoom_btn']['xpath']))
+        ).click()
+        self.wait.until(
+            EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['buttons']['zoom_btn']['zoom_50'])) ## Zoom 50 para rodar em monitores e no notebook sem quebrar
+        ).click()
+
+    def sign_pages(self):
+        element = self.wait.until(
+            EC.presence_of_element_located((By.XPATH, self.SITE_MAP['inputs']['pages_area']['xpath']))
         )
-        element.click()
-        element = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//button[@data-qa='zoom-level-75']"))
-        )
-        element.click()
-            
-    def start_sign_process(driver):
-        paginas_assinadas=[]
-        element = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//div[@data-qa='document-accordion-region']"))
-        )
-        rubrica = driver.find_element(By.XPATH, "//button[@data-qa='Initial']")
-        assinatura = driver.find_element(By.XPATH, "//button[@data-qa='Signature']")
-        paginas = element.find_elements(By.XPATH, "//button[@data-qa='tagger-documents']")
-        try:
-            DocusignController.sign_pages(driver, rubrica, assinatura)
-        except:
-            element = WebDriverWait(driver, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//button[@data-qa='modal-cancel-btn']"))
-            )
-            element.click()
-        finally:
-            DocusignController.sign_pages(driver, rubrica, assinatura)
-            for pagina in paginas:
-                alt_value = pagina.find_element(By.TAG_NAME, "img").get_dom_attribute("alt")
-                paginas_assinadas.append(alt_value)
-            return paginas_assinadas
-            
-    def sign_pages(driver, rubrica, assinatura, rubricaX=450, assinaturaX=332, rubricaY=370, assinaturaY=325):
-        element = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//div[@data-qa='document-accordion-region']"))
-        )
-        paginas = element.find_elements(By.XPATH, "//button[@data-qa='tagger-documents']")
-        for i, pagina in enumerate(paginas):
-            element = WebDriverWait(driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='tagger-documents']"))
-            )
-            alt_value = pagina.find_element(By.TAG_NAME, "img").get_dom_attribute("alt")
-            if "tem campos nesta página" not in alt_value:
-                pagina.click()
-                if i % 2 == 0 or i == 0:
-                    ActionChains(driver)\
-                        .click_and_hold(rubrica)\
-                        .move_by_offset(rubricaX, rubricaY)\
-                        .release()\
-                        .perform()
-                else:
-                    ActionChains(driver)\
-                        .click_and_hold(assinatura)\
-                        .move_by_offset(assinaturaX, assinaturaY)\
-                        .release()\
-                        .perform()
+        paginas = element.find_elements(By.XPATH, self.SITE_MAP['buttons']['pages_to_sign_btn']['xpath'])
+        rubrica = self.driver.find_element(By.XPATH, self.SITE_MAP['buttons']['rubrica_btn']['xpath'])
+        assinatura = self.driver.find_element(By.XPATH, self.SITE_MAP['buttons']['assinatura_btn']['xpath'])
+        
+        count = 0
+        while len(paginas) != count:
+            count = len(self.driver.find_elements(By.XPATH, self.SITE_MAP['inputs']['pages_signed']['xpath']))
+            try:
+                for i, pagina in enumerate(paginas):
+                    element = self.wait.until(
+                        EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['buttons']['pages_to_sign_btn']['xpath']))
+                    )
+                    alt_value = pagina.find_element(By.TAG_NAME, "img").get_dom_attribute("alt")
+                    if "tem campos nesta página" not in alt_value:
+                        pagina.click()
+                        if i % 2 == 0 or i == 0:
+                            ActionChains(self.driver)\
+                                .click_and_hold(rubrica)\
+                                .move_by_offset(332, 200)\
+                                .release()\
+                                .perform()
+                        else:
+                            ActionChains(self.driver)\
+                                .click_and_hold(assinatura)\
+                                .move_by_offset(265, 180)\
+                                .release()\
+                                .perform()
+                        rubrica.click()
+            except:
+                time.sleep(1)
+                element = self.wait.until(
+                    EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['buttons']['popup_btn']['xpath']))
+                ).click()
+                time.sleep(1)
                 rubrica.click()
+        time.sleep(2)
+        self.driver.quit()
