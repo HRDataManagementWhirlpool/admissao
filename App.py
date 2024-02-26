@@ -2,6 +2,7 @@ from src.models.sheets import SheetsModel
 from src.controllers.sheets import SheetsController
 from src.controllers.docusign import DocusignController
 
+import bcrypt
 import customtkinter
 import os
 from PIL import Image
@@ -10,7 +11,7 @@ import threading
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
-
+        self.docKeys=[b'$2a$13$UukfIr5pp3rMJENhRAIGCOSmJB.ZX.WvxWGd.myGlanuQkcDRAycW', b'$2a$13$H0yAPGVQh.wxe8/gzxn.puSaCOL7AEDzRZapjTfs40jrXklBswrKW']
         self.title("SmartHUB")
         self.geometry("800x400")
         self.minsize(800,400)
@@ -81,34 +82,38 @@ class App(customtkinter.CTk):
         self.third_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.third_frame.grid_columnconfigure(0, weight=1)
         
-        self.textbox3 = customtkinter.CTkTextbox(self.third_frame, width=250)
-        self.textbox3.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-        self.textbox3.insert("0.0", "Como Funciona\n\n" + "Basta iniciar o processo e inserir o diretório onde estão localizados os arquivos de para a realização da conferência\n\nOs arquivos necessários são: relatório de Agência e conta, relatório de conferência, relatório do eSocial, relatório do WorkForce, relatório de dependentes e a cópia do Check List com os REs que deseja verificar.\n\nNo final do processo, será gerado um arquivo excel com os dados conferidos na mesma pasta dos relatórios.")
+        self.label_1 = customtkinter.CTkLabel(master=self.third_frame, width=400, height=60, corner_radius=10,
+                                     fg_color=("gray70", "gray35"), text="Insira o E-mail e Senha do Docusign", anchor="center")
+        self.label_1.grid(row=0, column=0, padx=20, pady=15, sticky="nsew")
 
+        self.email = customtkinter.CTkEntry(master=self.third_frame, corner_radius=10, width=400, placeholder_text="E-mail")
+        self.email.grid(row=2, column=0, padx=20, pady=15)
+
+        self.senha = customtkinter.CTkEntry(master=self.third_frame, corner_radius=10, width=400, show="*", placeholder_text="Senha")
+        self.senha.grid(row=3, column=0, padx=20, pady=15)
+
+        self.button_login = customtkinter.CTkButton(master=self.third_frame, text="Entrar", command=self.check_login, corner_radius=6, width=200)
+        self.button_login.grid(row=4, column=0, padx=20, pady=15)
+        
+        self.textbox3 = customtkinter.CTkTextbox(self.third_frame, width=250)
+        
+        self.textbox3.insert("0.0", "Como Funciona\n\n" + "Basta iniciar o processo e inserir o diretório onde estão localizados os arquivos de para a realização da conferência\n\nOs arquivos necessários são: relatório de Agência e conta, relatório de conferência, relatório do eSocial, relatório do WorkForce, relatório de dependentes e a cópia do Check List com os REs que deseja verificar.\n\nNo final do processo, será gerado um arquivo excel com os dados conferidos na mesma pasta dos relatórios.")
         
         self.tabview = customtkinter.CTkTabview(self.third_frame, width=250, fg_color="transparent")
-        self.tabview.grid(row=1, column=0, padx=20, pady=20, sticky="nsew")
         
         self.tabview.add("Aprendizes")
         self.tabview.add("Horistas")
         self.tabview.add("Mensalistas")
         
-        self.tabview.tab("Aprendizes").grid_columnconfigure(0, weight=1)  # configure grid of individual tabs
-        self.tabview.tab("Horistas").grid_columnconfigure(0, weight=1)
-        self.tabview.tab("Mensalistas").grid_columnconfigure(0, weight=1)
-
         self.tabview_button = customtkinter.CTkButton(self.tabview.tab("Aprendizes"), text="Processo Aprendiz",
                                                       command=self.start_docusign_apprentice_process)
-        self.tabview_button.grid(row=0, column=0, padx=0, pady=10)
         
         self.tabview_button2 = customtkinter.CTkButton(self.tabview.tab("Horistas"), text="Processo Horista",
                                                       command=self.start_docusign_hourly_process)
-        self.tabview_button2.grid(row=0, column=0, padx=0, pady=10)
         
         self.tabview_button3 = customtkinter.CTkButton(self.tabview.tab("Mensalistas"), text="Processo Mensalista",
                                                       command=self.start_docusign_monthly_process)
-        self.tabview_button3.grid(row=0, column=0, padx=0, pady=10)
-
+        
         # select default frame
         self.select_frame_by_name("home")
 
@@ -190,7 +195,7 @@ class App(customtkinter.CTk):
                 self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Aprendizes"), text="Arquivo não informado", text_color="orange")
                 self.status_indicator.grid(row=2, column=0, pady=10)
                 return print("deu erro no arquivo")
-            process = DocusignController()
+            process = DocusignController(self.email.get(), self.senha.get())
             process.open_website()
             process.login()
             process.select_template()
@@ -255,6 +260,33 @@ class App(customtkinter.CTk):
             self.loading_bar.grid_forget()
             self.tabview_button3.configure(state="enabled", cursor="hand2", require_redraw=True)
             self.status_indicator.grid(row=2, column=0, pady=15, sticky="nsew")
+
+    def show_docusign_options(self):
+        self.textbox3.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+        self.tabview.grid(row=1, column=0, padx=20, pady=20, sticky="nsew")
+        self.tabview.tab("Aprendizes").grid_columnconfigure(0, weight=1)  # configure grid of individual tabs
+        self.tabview.tab("Horistas").grid_columnconfigure(0, weight=1)
+        self.tabview.tab("Mensalistas").grid_columnconfigure(0, weight=1)
+        self.tabview_button.grid(row=0, column=0, padx=0, pady=10)
+        self.tabview_button2.grid(row=0, column=0, padx=0, pady=10)
+        self.tabview_button3.grid(row=0, column=0, padx=0, pady=10)
+
+    def hide_login_options(self):
+        self.label_1.grid_forget()
+        self.email.grid_forget()
+        self.senha.grid_forget()
+        self.button_login.grid_forget()
+        self.status_indicator = customtkinter.CTkLabel(self.third_frame, text="Sucesso!", text_color="green")
+        self.status_indicator.grid(row=6, column=0, pady=15, sticky="nsew")
+        self.status_indicator.grid_forget()
+
+    def check_login(self):
+        if bcrypt.checkpw(self.email.get().encode('utf-8'), self.docKeys[0]) and bcrypt.checkpw(self.senha.get().encode('utf-8'), self.docKeys[1]):
+            self.hide_login_options()
+            self.show_docusign_options()
+        else:
+            self.status_indicator = customtkinter.CTkLabel(self.third_frame, text="E-mail ou senha incorretos!", text_color="red")
+            self.status_indicator.grid(row=6, column=0, pady=15, sticky="nsew")
 
 if __name__ == "__main__":
     app = App()

@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class DocusignController:
-    def __init__(self):
+    def __init__(self, email, senha):
         self.SITE_LINK = {
             "home": "https://apps.docusign.com/send/documents",
             "templates": "https://apps.docusign.com/send/templates"
@@ -57,11 +57,11 @@ class DocusignController:
             "inputs": {
                 "username": {
                     "xpath": "//input[@data-qa='username']",
-                    "keys": os.getenv('LOGIN')
+                    "keys": email
                 },
                 "password": {
                     "xpath": "//input[@data-qa='password']",
-                    "keys": os.getenv('SENHA')
+                    "keys": senha
                 },
                 "template_searchbar": {
                     "xpath": "//input[@data-qa='templates-main-header-form-input']",
@@ -97,7 +97,7 @@ class DocusignController:
         self.wait = WebDriverWait(self.driver, 30)
     
     def open_website(self):
-        self.driver.get(self.SITE_LINK['templates'])
+        self.driver.get(self.SITE_LINK['home'])
         
     def login(self):
         element = self.wait.until(
@@ -115,6 +115,7 @@ class DocusignController:
             )
             element.click()
         else:
+            print(self.SITE_MAP['inputs']['username']['keys'])
             element = self.wait.until(
                 EC.presence_of_element_located((By.XPATH, self.SITE_MAP['inputs']['password']['xpath']))
             )
@@ -126,6 +127,7 @@ class DocusignController:
             ).click()
 
     def select_template(self):
+        self.driver.get(self.SITE_LINK['templates'])
         element = self.wait.until(
             EC.presence_of_element_located((By.XPATH, self.SITE_MAP['inputs']['template_searchbar']['xpath']))
         )
