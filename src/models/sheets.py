@@ -20,6 +20,6 @@ class SheetsModel:
             if self.file_keyword in file:
                 file_path = os.path.join(self.folder_path, file)
                 workbook = load_workbook(filename=file_path)
-                worksheet = workbook[worksheet]
+                worksheet = load_workbook(filename=file_path, data_only=True)[worksheet]
                 print(f'{self.file_keyword} loaded')
                 return worksheet, workbook
