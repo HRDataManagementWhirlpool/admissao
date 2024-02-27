@@ -12,7 +12,7 @@ class SheetsController:
                         if re.value not in resConferidos: # E não esteja duplicado
                             resConferidos.append(re.value) # Insere o RE na lista
                             array = SheetsController.get_data(celula.row, conferencia, contas, dependentes, eSocial, workForce, re.value, nomesConferidos) # Armazena os valores em uma lista
-                            SheetsController.fill_sheet(checkList, re.row, array) # Preenche as informações na planilha
+                            SheetsController.fill_sheet(check, re.row, array) # Preenche as informações na planilha
         SheetsController.savefile(folder_path, check) # Salva o arquivo e finaliza o processo
 
     def format_date(date_string):
@@ -50,7 +50,7 @@ class SheetsController:
         infotipo = '-'
         turno = conferencia[f'K{linha}'].value
         cargaHoraria = str(conferencia[f'J{linha}'].value)
-        cargaHoraria = f'{cargaHoraria[:-2]} hs'
+        cargaHoraria = f'{cargaHoraria} hs'
         salario = conferencia[f'AE{linha}'].value
         sindicato = conferencia[f'AB{linha}'].value
         gremio='-'
@@ -91,13 +91,13 @@ class SheetsController:
         return varArray
 
     def fill_sheet(worksheet, row, array):
-        for col in worksheet[f'AC{row}':f'AZ{row}']:
+        for col in worksheet['Conferência'][f'AD{row}':f'BA{row}']:
             for i, cell in enumerate(col):
                 cell.value = array[i]
 
     def savefile(folder_path, workbook):
         now = datetime.datetime.now().strftime("%d-%m")
-        filename = f'Att-{now}.xlsx'
+        filename = f'Update-{now}.xlsx'
         savefile = os.path.join(folder_path, filename)
         workbook.save(savefile)
-        return 'Processo concluído. Arquivo salvo com sucesso.'
+        print('Processo concluído. Arquivo salvo com sucesso.')
