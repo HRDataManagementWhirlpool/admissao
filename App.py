@@ -109,7 +109,7 @@ class App(customtkinter.CTk):
                                                       command=self.start_docusign_apprentice_process)
         
         self.tabview_button2 = customtkinter.CTkButton(self.tabview.tab("Horistas"), text="Processo Horista",
-                                                      command=self.start_docusign_hourly_process)
+                                                      command=self.start_docusign_hourly_process, state="disabled")
         
         self.tabview_button3 = customtkinter.CTkButton(self.tabview.tab("Mensalistas"), text="Processo Mensalista",
                                                       command=self.start_docusign_monthly_process)
@@ -165,12 +165,13 @@ class App(customtkinter.CTk):
             dependentes = SheetsModel(folder_path, 'Dependente').load_sheet()
             eSocial = SheetsModel(folder_path, 'eSocial').load_sheet()
             workForce = SheetsModel(folder_path, 'WorkForce').load_sheet()
+            forAcesso = SheetsModel(folder_path, 'ForAcesso').load_sheet()
             checkList, check = SheetsModel(folder_path, 'Check').clone_sheet('Conferência')
             if not all([conferencia, contas, dependentes, eSocial,workForce, checkList]):
                 self.status_indicator = customtkinter.CTkLabel(self.second_frame, text="Algumas planilhas não foram encontradas. Verifique os nomes dos arquivos", text_color="orange")
                 self.status_indicator.grid(row=3, column=0, pady=10, sticky="nsew")
                 return
-            SheetsController(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check)
+            SheetsController(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check, forAcesso)
         except:
             self.status_indicator = customtkinter.CTkLabel(self.second_frame, text="Ocorreu um erro!", text_color="red")
         else:
@@ -194,14 +195,8 @@ class App(customtkinter.CTk):
             if not all([file]):
                 self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Aprendizes"), text="Arquivo não informado", text_color="orange")
                 self.status_indicator.grid(row=2, column=0, pady=10)
-                return print("deu erro no arquivo")
-            process = DocusignController(self.email.get(), self.senha.get())
-            process.open_website()
-            process.login()
-            process.select_template()
-            process.select_document_to_sign(file)
-            process.sign_document_select_zoom()
-            process.sign_pages()
+                return
+            DocusignController(self.email.get(), self.senha.get()).apprentice_process(file)
         except:
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Aprendizes"), text="Ocorreu um erro!", text_color="red")
         else:
@@ -226,7 +221,6 @@ class App(customtkinter.CTk):
                 self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Horistas"), text="Arquivo não informado", text_color="orange")
                 self.status_indicator.grid(row=2, column=0, pady=10)
                 return
-            print("Processo dos Horistas")
         except:
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Horistas"), text="Ocorreu um erro!", text_color="red")
         else:
@@ -246,12 +240,12 @@ class App(customtkinter.CTk):
 
     def docusign_monthly_process_in_background(self):
         try:
-            file = customtkinter.filedialog.askopenfilename()
-            if not all([file]):
+            folder_path = customtkinter.filedialog.askdirectory()
+            if not all([folder_path]):
                 self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Mensalistas"), text="Arquivo não informado", text_color="orange")
                 self.status_indicator.grid(row=2, column=0, pady=10)
                 return
-            print("Processo dos Mensalistas")
+            DocusignController(self.email.get(), self.senha.get()).monthly_process(folder_path)
         except:
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Mensalistas"), text="Ocorreu um erro!", text_color="red")
         else:
