@@ -7,6 +7,8 @@ a = Analysis(
     binaries=[],
     datas=[
         ('media', 'media/'),
+        ('files', 'files/'),
+        ('data', 'data/'),
         ('customtkinter', 'customtkinter/')
     ],
     hiddenimports=[],
