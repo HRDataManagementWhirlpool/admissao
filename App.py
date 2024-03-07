@@ -1,7 +1,7 @@
 from src.models.sheets import SheetsModel
 from src.controllers.sheets import SheetsController
 from src.controllers.docusign import DocusignController
-from src.controllers.pdf import PdfController
+from controllers.pdfslicer import PdfController
 
 import bcrypt
 import customtkinter
