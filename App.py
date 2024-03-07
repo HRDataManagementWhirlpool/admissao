@@ -1,6 +1,7 @@
 from src.models.sheets import SheetsModel
 from src.controllers.sheets import SheetsController
 from src.controllers.docusign import DocusignController
+from src.controllers.pdf import PdfController
 
 import bcrypt
 import customtkinter
@@ -106,13 +107,13 @@ class App(customtkinter.CTk):
         self.tabview.add("Mensalistas")
         
         self.tabview_button = customtkinter.CTkButton(self.tabview.tab("Aprendizes"), text="Processo Aprendiz",
-                                                      command=self.start_docusign_apprentice_process)
+                                                      command=self.start_docusign_aprendiz_process)
         
         self.tabview_button2 = customtkinter.CTkButton(self.tabview.tab("Horistas"), text="Processo Horista",
-                                                      command=self.start_docusign_hourly_process)
+                                                      command=self.start_docusign_horista_process)
         
         self.tabview_button3 = customtkinter.CTkButton(self.tabview.tab("Mensalistas"), text="Processo Mensalista",
-                                                      command=self.start_docusign_monthly_process)
+                                                      command=self.start_docusign_mensalista_process)
         
         # select default frame
         self.select_frame_by_name("home")
@@ -170,7 +171,7 @@ class App(customtkinter.CTk):
                 self.status_indicator = customtkinter.CTkLabel(self.second_frame, text="Algumas planilhas não foram encontradas. Verifique os nomes dos arquivos", text_color="orange")
                 self.status_indicator.grid(row=3, column=0, pady=10, sticky="nsew")
                 return
-            SheetsController(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check)
+            SheetsController.start_process(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check)
         except:
             self.status_indicator = customtkinter.CTkLabel(self.second_frame, text="Ocorreu um erro!", text_color="red")
         else:
@@ -180,28 +181,22 @@ class App(customtkinter.CTk):
             self.second_frame_button_1.configure(state="enabled", require_redraw=True)
             self.status_indicator.grid(row=3, column=0, pady=10, sticky="nsew")
 
-    def start_docusign_apprentice_process(self):
+    def start_docusign_aprendiz_process(self):
         self.tabview_button.configure(state="disabled")
         self.loading_bar = customtkinter.CTkProgressBar(self.tabview.tab("Aprendizes"))
         self.loading_bar.grid(row=1, column=0, padx=150, pady=(10, 10), sticky="ew")
         self.loading_bar.configure(determinate_speed=5)
         self.loading_bar.start()
-        threading.Thread(target=self.docusign_apprentice_process_in_background).start()
+        threading.Thread(target=self.docusign_aprendiz_process_in_background).start()
 
-    def docusign_apprentice_process_in_background(self):
+    def docusign_aprendiz_process_in_background(self):
         try:
             file = customtkinter.filedialog.askopenfilename()
             if not all([file]):
                 self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Aprendizes"), text="Arquivo não informado", text_color="orange")
                 self.status_indicator.grid(row=2, column=0, pady=10)
                 return print("deu erro no arquivo")
-            process = DocusignController(self.email.get(), self.senha.get())
-            process.open_website()
-            process.login()
-            process.select_template()
-            process.select_document_to_sign(file)
-            process.sign_document_select_zoom()
-            process.sign_pages()
+            DocusignController(self.email.get(), self.senha.get()).aprendiz_send_process(file)
         except:
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Aprendizes"), text="Ocorreu um erro!", text_color="red")
         else:
@@ -211,15 +206,15 @@ class App(customtkinter.CTk):
             self.tabview_button.configure(state="enabled", cursor="hand2", require_redraw=True)
             self.status_indicator.grid(row=2, column=0, pady=15, sticky="nsew")
 
-    def start_docusign_hourly_process(self):
+    def start_docusign_horista_process(self):
         self.tabview_button2.configure(state="disabled")
         self.loading_bar = customtkinter.CTkProgressBar(self.tabview.tab("Horistas"))
         self.loading_bar.grid(row=1, column=0, padx=150, pady=(10, 10), sticky="ew")
         self.loading_bar.configure(determinate_speed=5)
         self.loading_bar.start()
-        threading.Thread(target=self.docusign_hourly_process_in_background).start()
+        threading.Thread(target=self.docusign_horista_process_in_background).start()
 
-    def docusign_hourly_process_in_background(self):
+    def docusign_horista_process_in_background(self):
         try:
             file = customtkinter.filedialog.askopenfilename()
             if not all([file]):
@@ -227,6 +222,7 @@ class App(customtkinter.CTk):
                 self.status_indicator.grid(row=2, column=0, pady=10)
                 return
             print("Processo dos Horistas")
+            DocusignController(self.email.get(), self.senha.get()).horista_send_process(file)
         except:
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Horistas"), text="Ocorreu um erro!", text_color="red")
         else:
@@ -236,22 +232,25 @@ class App(customtkinter.CTk):
             self.tabview_button2.configure(state="enabled", cursor="hand2", require_redraw=True)
             self.status_indicator.grid(row=2, column=0, pady=15, sticky="nsew")
 
-    def start_docusign_monthly_process(self):
+    def start_docusign_mensalista_process(self):
         self.tabview_button3.configure(state="disabled")
         self.loading_bar = customtkinter.CTkProgressBar(self.tabview.tab("Mensalistas"))
         self.loading_bar.grid(row=1, column=0, padx=150, pady=(10, 10), sticky="ew")
         self.loading_bar.configure(determinate_speed=5)
         self.loading_bar.start()
-        threading.Thread(target=self.docusign_monthly_process_in_background).start()
+        threading.Thread(target=self.docusign_mensalista_process_in_background).start()
 
-    def docusign_monthly_process_in_background(self):
+    def docusign_mensalista_process_in_background(self):
         try:
             file = customtkinter.filedialog.askopenfilename()
-            if not all([file]):
+            wb = customtkinter.filedialog.askopenfilename()
+            if not all([file, wb]):
                 self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Mensalistas"), text="Arquivo não informado", text_color="orange")
                 self.status_indicator.grid(row=2, column=0, pady=10)
                 return
-            print("Processo dos Mensalistas")
+            data = SheetsController.fill_mensalistas_data(wb)
+            PdfController.slice_and_rename_from_data(file, data)
+            DocusignController(self.email.get(), self.senha.get()).mensalista_send_process(data)
         except:
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Mensalistas"), text="Ocorreu um erro!", text_color="red")
         else:

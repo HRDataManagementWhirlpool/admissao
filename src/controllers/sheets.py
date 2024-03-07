@@ -1,8 +1,9 @@
 import os
 import datetime
+from openpyxl import load_workbook, Workbook
 
 class SheetsController:
-    def __init__(self, checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check):
+    def start_process(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check):
         resConferidos = [] # Armazena o RE para evitar duplicidade
         for re in checkList['B'][2:]: # Para linha na Coluna B a partir da terceira linha:
             nomesConferidos = [] # Armazena os nomes dos dependentes do RE que está sendo conferido para evitar duplicidade
@@ -100,4 +101,39 @@ class SheetsController:
         filename = f'Update-{now}.xlsx'
         savefile = os.path.join(folder_path, filename)
         workbook.save(savefile)
-        print('Processo concluído. Arquivo salvo com sucesso.')
+
+    def fill_mensalistas_data(workbook):
+        mensalistas = [] # Cria o array das listas com os dados de cada mensalista
+        wb = load_workbook(filename=workbook, data_only= True) # Carrega a planilha com as informações das admissões
+        ws = wb.active # Escolhe a aba ativa da planilha
+        conf=[] # Cria uma lista que armazenará os REs dos mensalistas para que não haja duplicidade nos dados
+        for type in ws['AR'][1:]:
+            if type.value == "MENSAL.":
+                nome = ws[f'B{type.row}'].value
+                re = ws[f'A{type.row}'].value
+                email = ws[f'Q{type.row}'].value
+                if re not in conf: # Utilizando o array para evitar duplicidade
+                    mensalistas.append({'nome': nome, 're': re, 'email': email}) # Armazena os dados na lista
+                    conf.append(re)
+        return mensalistas
+
+    def save_docusign_data(array:list):
+        try:
+            wb = load_workbook('data/docusign_data.xlsx')
+        except:
+            wb = Workbook()
+        finally:
+            ws = wb.active
+            ws['A1']= "RE"
+            ws['B1']= "NOME COMPLETO"
+            ws['C1']= "EMAIL"
+            ws['D1']= "ENVIADO"
+            ws['E1']= "DATA DE ENVIO"
+            ws['F1']= "COLETADO"
+            ws['G1']= "DATA DE COLETA"
+        
+        row = ws.max_row+1
+        array = array + ["Ok", datetime.date.today(), "NOk", "-"]
+        for i, data in enumerate(array):
+            ws.cell(column=1+i, row=row, value=data)
+        wb.save('data/docusign_data.xlsx')
