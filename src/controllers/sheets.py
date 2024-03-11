@@ -1,7 +1,7 @@
 import os
 import datetime
 from openpyxl import load_workbook, Workbook
-from docusign import DocusignController
+from src.controllers.docusign import DocusignController
 
 class SheetsController:
     def start_process(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check, forAcesso):
