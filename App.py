@@ -106,13 +106,16 @@ class App(customtkinter.CTk):
         self.tabview.add("Horistas")
         self.tabview.add("Mensalistas")
         
-        self.tabview_button = customtkinter.CTkButton(self.tabview.tab("Aprendizes"), text="Processo Aprendiz",
+        self.tabview_button = customtkinter.CTkButton(self.tabview.tab("Aprendizes"), text="Assinar Aprendiz",
                                                       command=self.start_docusign_aprendiz_process)
         
-        self.tabview_button2 = customtkinter.CTkButton(self.tabview.tab("Horistas"), text="Processo Horista",
+        self.tabview_button2 = customtkinter.CTkButton(self.tabview.tab("Horistas"), text="Assinar Horista",
                                                       command=self.start_docusign_horista_process)
         
-        self.tabview_button3 = customtkinter.CTkButton(self.tabview.tab("Mensalistas"), text="Processo Mensalista",
+        self.tabview_button3 = customtkinter.CTkButton(self.tabview.tab("Mensalistas"), text="Assinar Mensalista",
+                                                      command=self.start_docusign_mensalista_process)
+        
+        self.tabview_button4 = customtkinter.CTkButton(self.tabview.tab("Mensalistas"), text="Recolher Mensalista",
                                                       command=self.start_docusign_mensalista_process)
         
         # select default frame
@@ -221,7 +224,6 @@ class App(customtkinter.CTk):
                 self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Horistas"), text="Arquivo não informado", text_color="orange")
                 self.status_indicator.grid(row=2, column=0, pady=10)
                 return
-            print("Processo dos Horistas")
             DocusignController(self.email.get(), self.senha.get()).horista_send_process(file)
         except:
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Horistas"), text="Ocorreu um erro!", text_color="red")
@@ -249,8 +251,20 @@ class App(customtkinter.CTk):
                 self.status_indicator.grid(row=2, column=0, pady=10)
                 return
             data = SheetsController.fill_mensalistas_data(wb)
+            #download_mensalistas_contract()
             PdfController.slice_and_rename_from_data(file, data)
-            DocusignController(self.email.get(), self.senha.get()).mensalista_send_process(data)
+            folder = os.listdir('files')
+            process = DocusignController(self.email.get(), self.senha.get())
+            process.open_website()
+            process.login()
+            for mensalista in data:
+                for file in folder:
+                    if mensalista['re'] in file:
+                        process.select_template_mensalista()
+                        process.select_document_to_sign_mensalista(os.path.abspath(os.path.join('files', file)), mensalista['nome'], mensalista['email'], file[:-4])
+                        process.sign_document_select_zoom()
+                        process.sign_pages_mensalista(mensalista['nome'])
+                        SheetsController.save_docusign_data([mensalista["re"], mensalista["nome"], mensalista["email"]])
         except:
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Mensalistas"), text="Ocorreu um erro!", text_color="red")
         else:
@@ -265,10 +279,11 @@ class App(customtkinter.CTk):
         self.tabview.grid(row=1, column=0, padx=20, pady=20, sticky="nsew")
         self.tabview.tab("Aprendizes").grid_columnconfigure(0, weight=1)  # configure grid of individual tabs
         self.tabview.tab("Horistas").grid_columnconfigure(0, weight=1)
-        self.tabview.tab("Mensalistas").grid_columnconfigure(0, weight=1)
+        self.tabview.tab("Mensalistas").grid_columnconfigure(0, weight=2)
         self.tabview_button.grid(row=0, column=0, padx=0, pady=10)
         self.tabview_button2.grid(row=0, column=0, padx=0, pady=10)
         self.tabview_button3.grid(row=0, column=0, padx=0, pady=10)
+        self.tabview_button4.grid(row=1, column=0, padx=0, pady=10)
 
     def hide_login_options(self):
         self.label_1.grid_forget()

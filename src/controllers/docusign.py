@@ -4,8 +4,14 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import ElementClickInterceptedException
+
 import time
 import os
+
+from dotenv import load_dotenv # Segurança das senhas
+
+load_dotenv() # Carrega o .env
 
 class DocusignController:
     def __init__(self, email, senha):
@@ -189,32 +195,6 @@ class DocusignController:
                     EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['buttons']['popup_btn']['xpath']))
                 ).click()
 
-    def get_signed_document(self, doc_name):
-        self.open_website('done')
-        
-        element = self.wait.until(
-            EC.presence_of_element_located((By.XPATH, "//input[@data-qa='manage-envelopes-header-form-input']"))
-        )
-        element.send_keys(doc_name)
-        element.send_keys(Keys.ENTER)
-        
-        element = self.wait.until(
-            EC.presence_of_element_located((By.XPATH, "//span/span/button"))
-        ).click()
-        
-        self.wait.until(
-            EC.presence_of_element_located((By.XPATH, "//span[@data-qa='download-all-label-label-text']"))
-        ).click()
-        
-        self.wait.until(
-            EC.presence_of_element_located((By.XPATH, "//span[@data-qa='download-document-label-label-text']"))
-        ).click()
-        
-        buttons = self.driver.find_elements(By.XPATH, "//button")
-        for button in buttons:
-            if button.text == 'Baixar':
-                button.click()
-
     def select_document_to_sign_mensalista(self, document, name:str, mail:str, title:str):
         self.wait.until(
             EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='upload-file-button']"))
@@ -344,13 +324,15 @@ class DocusignController:
                         rubrica.click()
                     count = len(self.driver.find_elements(By.XPATH, self.SITE_MAP['inputs']['pages_signed']['xpath']))
                     alt_value = pagina.find_element(By.TAG_NAME, "img").get_dom_attribute("alt")
-            except:
+            except ElementClickInterceptedException:
                 self.wait.until(
                     EC.element_to_be_clickable((By.XPATH, self.SITE_MAP['buttons']['popup_btn']['xpath']))
                 ).click()
                 time.sleep(1)
                 rubrica.click()
-        #self.driver.find_element(By.XPATH, "//button[@data-qa='footer-send-button']").click()
+            except Exception as e:
+                return e
+        self.driver.find_element(By.XPATH, "//button[@data-qa='footer-send-button']").click()
         time.sleep(2)
 
     def sign_pages_horista(self):
@@ -463,6 +445,35 @@ class DocusignController:
         self.login()
         self.select_template()
         self.select_document_to_sign(file)
-        a = input('a: ')
         self.sign_document_select_zoom()
         self.sign_pages_aprendiz()
+
+    def get_signed_document(self, doc_name):
+        self.open_website('done')
+        
+        element = self.wait.until(
+            EC.presence_of_element_located((By.XPATH, "//input[@data-qa='manage-envelopes-header-form-input']"))
+        )
+        element.send_keys(doc_name)
+        element.send_keys(Keys.ENTER)
+        
+        try:
+            element = self.wait.until(
+                EC.presence_of_element_located((By.XPATH, "//span/span/button"))
+            ).click()
+            
+            self.wait.until(
+                EC.presence_of_element_located((By.XPATH, "//span[@data-qa='download-all-label-label-text']"))
+            ).click()
+            
+            self.wait.until(
+                EC.presence_of_element_located((By.XPATH, "//span[@data-qa='download-document-label-label-text']"))
+            ).click()
+            
+            buttons = self.driver.find_elements(By.XPATH, "//button")
+            for button in buttons:
+                if button.text == 'Baixar':
+                    button.click()
+            return True
+        except:
+            return False
