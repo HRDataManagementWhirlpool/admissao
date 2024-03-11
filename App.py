@@ -170,11 +170,12 @@ class App(customtkinter.CTk):
             eSocial = SheetsModel(folder_path, 'eSocial').load_sheet()
             workForce = SheetsModel(folder_path, 'WorkForce').load_sheet()
             checkList, check = SheetsModel(folder_path, 'Check').clone_sheet('Conferência')
-            if not all([conferencia, contas, dependentes, eSocial,workForce, checkList]):
+            forAcesso = SheetsModel(folder_path, 'ForAcesso').load_sheet()
+            if not all([conferencia, contas, dependentes, eSocial,workForce, checkList, forAcesso]):
                 self.status_indicator = customtkinter.CTkLabel(self.second_frame, text="Algumas planilhas não foram encontradas. Verifique os nomes dos arquivos", text_color="orange")
                 self.status_indicator.grid(row=3, column=0, pady=10, sticky="nsew")
                 return
-            SheetsController.start_process(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check)
+            SheetsController.start_process(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check, forAcesso)
         except:
             self.status_indicator = customtkinter.CTkLabel(self.second_frame, text="Ocorreu um erro!", text_color="red")
         else:

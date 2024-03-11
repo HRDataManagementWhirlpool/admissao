@@ -3,7 +3,7 @@ import datetime
 from openpyxl import load_workbook, Workbook
 
 class SheetsController:
-    def start_process(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check):
+    def start_process(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check, forAcesso):
         resConferidos = [] # Armazena o RE para evitar duplicidade
         for re in checkList['B'][2:]: # Para linha na Coluna B a partir da terceira linha:
             nomesConferidos = [] # Armazena os nomes dos dependentes do RE que está sendo conferido para evitar duplicidade
@@ -12,7 +12,7 @@ class SheetsController:
                     if celula.value == re.value: # Caso seja igual
                         if re.value not in resConferidos: # E não esteja duplicado
                             resConferidos.append(re.value) # Insere o RE na lista
-                            array = SheetsController.get_data(celula.row, conferencia, contas, dependentes, eSocial, workForce, re.value, nomesConferidos) # Armazena os valores em uma lista
+                            array = SheetsController.get_data(celula.row, conferencia, contas, dependentes, eSocial, workForce, re.value, nomesConferidos, forAcesso) # Armazena os valores em uma lista
                             SheetsController.fill_sheet(check, re.row, array) # Preenche as informações na planilha
         SheetsController.savefile(folder_path, check) # Salva o arquivo e finaliza o processo
 
@@ -26,7 +26,7 @@ class SheetsController:
                 data = str(workbook[f'{col}{row}'].value)
                 return data
 
-    def get_data(linha, conferencia, contas, dependentes, eSocial, workForce, reValue, nomesConferidos):
+    def get_data(linha, conferencia, contas, dependentes, eSocial, workForce, reValue, nomesConferidos, forAcesso):
         dtInicio = SheetsController.format_date(str(conferencia[f'C{linha}'].value))
         vinculo = conferencia[f'AF{linha}'].value
         codCategoria = conferencia[f'AL{linha}'].value
@@ -62,37 +62,43 @@ class SheetsController:
         es = SheetsController.workbook_data(eSocial, 'J', reValue, 'G')
         wf = SheetsController.workbook_data(workForce, 'BD', reValue, 'CB')
         cargo = SheetsController.workbook_data(workForce, 'BD', reValue, 'BJ')
+        fa = SheetsController.workbook_data(forAcesso, 'A', reValue, 'X')
+        sap = '-'
+        sf = '-'
         
         varArray = [
-                            dtInicio,
-                            cargo,
-                            vinculo,
-                            codCategoria,
-                            codVinculo,
-                            codExposicao,
-                            agencia,
-                            conta,
-                            dependente,
-                            saude,
-                            saudeDt,
-                            vida,
-                            vidaDt,
-                            fgts,
-                            pFgts,
-                            infotipo,
-                            turno,
-                            cargaHoraria,
-                            salario,
-                            gremio,
-                            sindicato,
-                            periculosidade,
-                            es,
-                            wf
-                        ]
+                    dtInicio,
+                    cargo,
+                    vinculo,
+                    codCategoria,
+                    codVinculo,
+                    codExposicao,
+                    agencia,
+                    conta,
+                    dependente,
+                    saude,
+                    saudeDt,
+                    vida,
+                    vidaDt,
+                    fgts,
+                    pFgts,
+                    infotipo,
+                    turno,
+                    cargaHoraria,
+                    salario,
+                    gremio,
+                    sindicato,
+                    periculosidade,
+                    es,
+                    wf,
+                    fa,
+                    sap,
+                    sf
+                ]
         return varArray
 
     def fill_sheet(worksheet, row, array):
-        for col in worksheet['Conferência'][f'AD{row}':f'BA{row}']:
+        for col in worksheet['Conferência'][f'AG{row}':f'BG{row}']:
             for i, cell in enumerate(col):
                 cell.value = array[i]
 
