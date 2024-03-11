@@ -286,14 +286,15 @@ class App(customtkinter.CTk):
 
     def docusign_mensalista_colect_process_in_background(self):
         try:
-            process = DocusignController(self.email.get(), self.senha.get())
-            process.open_website()
-            process.login()
             contratos = SheetsController.get_signed_contracts()
-            for contrato in contratos:
-                colected = process.get_signed_document(contrato['contrato'])
-                if colected:
-                    SheetsController.save_dicusign_colect_data(contrato['linha'])
+            if len(contratos) >= 1:
+                process = DocusignController(self.email.get(), self.senha.get())
+                process.open_website()
+                process.login()
+                for contrato in contratos:
+                    colected = process.get_signed_document(contrato['contrato'])
+                    if colected:
+                        SheetsController.save_dicusign_colect_data(contrato['linha'])
         except:
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Mensalistas"), text="Ocorreu um erro!", text_color="red")
         else:
