@@ -127,7 +127,7 @@ class SheetsController:
                     conf.append(re)
         return mensalistas
 
-    def save_docusign_data(array:list):
+    def save_docusign_send_data(array:list):
         try:
             wb = load_workbook('data/docusign_data.xlsx')
         except:
@@ -148,23 +148,28 @@ class SheetsController:
             ws.cell(column=1+i, row=row, value=data)
         wb.save('data/docusign_data.xlsx')
         
-    def get_signed_contracts(login, senha):
+    def get_signed_contracts():
         try:
             wb = load_workbook('data/docusign_data.xlsx')
         except Exception as error:
             return error
         ws = wb.active
-        processo = DocusignController(login, senha)
-        processo.open_website()
-        processo.login()
+        to_colect = []
         for coletado in ws['F'][1:]:
             if coletado.value == 'NOk':
                 row = coletado.row
                 nome = ws[f'B{row}'].value
                 re = ws[f'A{row}'].value
                 contrato = f'CONTRATO DE TRABALHO - {nome} - {re}'
-                coleta = processo.get_signed_document(contrato)
-                if coleta:
-                    ws[f'F{row}'].value = "Ok"
-                    ws[f'G{row}'].value = datetime.date.today()
-        wb.save('data/docusign_data.xlsx')
+                to_colect.append({"contrato": contrato, "linha": row})
+        return to_colect
+        
+    def save_dicusign_colect_data(row):
+        try:
+            wb = load_workbook('data/docusign_data.xlsx')
+            ws = wb.active
+            ws[f'F{row}'].value = "Ok"
+            ws[f'G{row}'].value = datetime.date.today()
+            wb.save('data/docusign_data.xlsx')
+        except:
+            return "Ocorreu um erro"

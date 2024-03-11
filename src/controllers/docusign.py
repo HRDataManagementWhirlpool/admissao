@@ -475,5 +475,3 @@ class DocusignController:
             return False
         else:
             return True
-        
-print(sys.path)
