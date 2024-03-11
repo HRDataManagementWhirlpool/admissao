@@ -1,3 +1,5 @@
+import sys
+import os
 from src.models.sheets import SheetsModel
 from src.controllers.sheets import SheetsController
 from src.controllers.docusign import DocusignController
@@ -5,7 +7,7 @@ from src.controllers.pdf import PdfController
 
 import bcrypt
 import customtkinter
-import os
+
 from PIL import Image
 import threading
 
@@ -322,6 +324,8 @@ class App(customtkinter.CTk):
             self.status_indicator = customtkinter.CTkLabel(self.third_frame, text="E-mail ou senha incorretos!", text_color="red")
             self.status_indicator.grid(row=6, column=0, pady=15, sticky="nsew")
 
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+# if __name__ == "__main__":
+#     app = App()
+#     app.mainloop()
+
+print(sys.path)

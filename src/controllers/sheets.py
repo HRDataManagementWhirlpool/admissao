@@ -1,8 +1,7 @@
 import os
 import sys
-diretorio_principal = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(diretorio_principal)
 
+sys.path.append(r'c:\\Users\\DESOUR10\\Desktop\\Clone das Demandas\\admissao\\src\\controllers')
 import datetime
 from openpyxl import load_workbook, Workbook
 from docusign import DocusignController
