@@ -332,7 +332,7 @@ class DocusignController:
                 rubrica.click()
             except Exception as e:
                 return e
-        self.driver.find_element(By.XPATH, "//button[@data-qa='footer-send-button']").click()
+        #self.driver.find_element(By.XPATH, "//button[@data-qa='footer-send-button']").click()
         time.sleep(2)
 
     def sign_pages_horista(self):
@@ -374,7 +374,7 @@ class DocusignController:
                 ).click()
                 time.sleep(1)
                 rubrica.click()
-        self.driver.find_element(By.XPATH, "//button[@data-qa='footer-send-button']").click()
+        #self.driver.find_element(By.XPATH, "//button[@data-qa='footer-send-button']").click()
         self.driver.quit()
 
     def sign_pages_aprendiz(self):
@@ -418,7 +418,7 @@ class DocusignController:
                     pass
                 time.sleep(1)
                 rubrica.click()
-        self.driver.find_element(By.XPATH, "//button[@data-qa='footer-send-button']").click()
+        #self.driver.find_element(By.XPATH, "//button[@data-qa='footer-send-button']").click()
 
     def horista_send_process(self, file):
         self.open_website()
@@ -474,6 +474,8 @@ class DocusignController:
             for button in buttons:
                 if button.text == 'Baixar':
                     button.click()
-            return True
+            time.sleep(4)
         except:
             return False
+        else:
+            return True

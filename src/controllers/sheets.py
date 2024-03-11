@@ -1,6 +1,7 @@
 import os
 import datetime
 from openpyxl import load_workbook, Workbook
+from docusign import DocusignController
 
 class SheetsController:
     def start_process(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check):
@@ -136,4 +137,25 @@ class SheetsController:
         array = array + ["Ok", datetime.date.today(), "NOk", "-"]
         for i, data in enumerate(array):
             ws.cell(column=1+i, row=row, value=data)
+        wb.save('data/docusign_data.xlsx')
+        
+    def get_signed_contracts(login, senha):
+        try:
+            wb = load_workbook('data/docusign_data.xlsx')
+        except Exception as error:
+            return error
+        ws = wb.active
+        processo = DocusignController(login, senha)
+        processo.open_website()
+        processo.login()
+        for coletado in ws['F'][1:]:
+            if coletado.value == 'NOk':
+                row = coletado.row
+                nome = ws[f'B{row}'].value
+                re = ws[f'A{row}'].value
+                contrato = f'CONTRATO DE TRABALHO - {nome} - {re}'
+                coleta = processo.get_signed_document(contrato)
+                if coleta:
+                    ws[f'F{row}'].value = "Ok"
+                    ws[f'G{row}'].value = datetime.date.today()
         wb.save('data/docusign_data.xlsx')

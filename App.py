@@ -113,10 +113,10 @@ class App(customtkinter.CTk):
                                                       command=self.start_docusign_horista_process)
         
         self.tabview_button3 = customtkinter.CTkButton(self.tabview.tab("Mensalistas"), text="Assinar Mensalista",
-                                                      command=self.start_docusign_mensalista_process)
+                                                      command=self.start_docusign_send_mensalista_process)
         
         self.tabview_button4 = customtkinter.CTkButton(self.tabview.tab("Mensalistas"), text="Recolher Mensalista",
-                                                      command=self.start_docusign_mensalista_process)
+                                                      command=self.start_docusign_colect_mensalista_process)
         
         # select default frame
         self.select_frame_by_name("home")
@@ -234,15 +234,15 @@ class App(customtkinter.CTk):
             self.tabview_button2.configure(state="enabled", cursor="hand2", require_redraw=True)
             self.status_indicator.grid(row=2, column=0, pady=15, sticky="nsew")
 
-    def start_docusign_mensalista_process(self):
+    def start_docusign_send_mensalista_process(self):
         self.tabview_button3.configure(state="disabled")
         self.loading_bar = customtkinter.CTkProgressBar(self.tabview.tab("Mensalistas"))
         self.loading_bar.grid(row=1, column=0, padx=150, pady=(10, 10), sticky="ew")
         self.loading_bar.configure(determinate_speed=5)
         self.loading_bar.start()
-        threading.Thread(target=self.docusign_mensalista_process_in_background).start()
+        threading.Thread(target=self.docusign_mensalista_send_process_in_background).start()
 
-    def docusign_mensalista_process_in_background(self):
+    def docusign_mensalista_send_process_in_background(self):
         try:
             file = customtkinter.filedialog.askopenfilename()
             wb = customtkinter.filedialog.askopenfilename()
@@ -251,7 +251,6 @@ class App(customtkinter.CTk):
                 self.status_indicator.grid(row=2, column=0, pady=10)
                 return
             data = SheetsController.fill_mensalistas_data(wb)
-            #download_mensalistas_contract()
             PdfController.slice_and_rename_from_data(file, data)
             folder = os.listdir('files')
             process = DocusignController(self.email.get(), self.senha.get())
@@ -265,6 +264,26 @@ class App(customtkinter.CTk):
                         process.sign_document_select_zoom()
                         process.sign_pages_mensalista(mensalista['nome'])
                         SheetsController.save_docusign_data([mensalista["re"], mensalista["nome"], mensalista["email"]])
+        except:
+            self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Mensalistas"), text="Ocorreu um erro!", text_color="red")
+        else:
+            self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Mensalistas"), text="Processo concluído!", text_color="green")
+        finally:
+            self.loading_bar.grid_forget()
+            self.tabview_button3.configure(state="enabled", cursor="hand2", require_redraw=True)
+            self.status_indicator.grid(row=2, column=0, pady=15, sticky="nsew")
+
+    def start_docusign_colect_mensalista_process(self):
+        self.tabview_button3.configure(state="disabled")
+        self.loading_bar = customtkinter.CTkProgressBar(self.tabview.tab("Mensalistas"))
+        self.loading_bar.grid(row=1, column=0, padx=150, pady=(10, 10), sticky="ew")
+        self.loading_bar.configure(determinate_speed=5)
+        self.loading_bar.start()
+        threading.Thread(target=self.docusign_mensalista_colect_process_in_background).start()
+
+    def docusign_mensalista_colect_process_in_background(self):
+        try:
+            SheetsController.get_signed_contracts(self.email.get(), self.senha.get())
         except:
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Mensalistas"), text="Ocorreu um erro!", text_color="red")
         else:
