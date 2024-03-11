@@ -9,10 +9,6 @@ from selenium.common.exceptions import ElementClickInterceptedException
 import time
 import os
 
-from dotenv import load_dotenv # Segurança das senhas
-
-load_dotenv() # Carrega o .env
-
 class DocusignController:
     def __init__(self, email, senha):
         self.SITE_LINK = {
