@@ -1,7 +1,11 @@
 import os
+import sys
+diretorio_principal = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(diretorio_principal)
+
 import datetime
 from openpyxl import load_workbook, Workbook
-from src.controllers.docusign import DocusignController
+from docusign import DocusignController
 
 class SheetsController:
     def start_process(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check, forAcesso):
