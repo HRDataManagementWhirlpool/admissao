@@ -266,7 +266,7 @@ class App(customtkinter.CTk):
                         process.select_document_to_sign_mensalista(os.path.abspath(os.path.join('files', file)), mensalista['nome'], mensalista['email'], file[:-4])
                         process.sign_document_select_zoom()
                         process.sign_pages_mensalista(mensalista['nome'])
-                        SheetsController.save_docusign_data([mensalista["re"], mensalista["nome"], mensalista["email"]])
+                        SheetsController.save_docusign_send_data([mensalista["re"], mensalista["nome"], mensalista["email"]])
         except:
             self.status_indicator = customtkinter.CTkLabel(self.tabview.tab("Mensalistas"), text="Ocorreu um erro!", text_color="red")
         else:

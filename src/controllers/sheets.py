@@ -115,16 +115,22 @@ class SheetsController:
     def fill_mensalistas_data(workbook):
         mensalistas = [] # Cria o array das listas com os dados de cada mensalista
         wb = load_workbook(filename=workbook, data_only= True) # Carrega a planilha com as informações das admissões
-        ws = wb.active # Escolhe a aba ativa da planilha
+        ws = wb['Painel Geral Admissões'] # Escolhe a aba ativa da planilha
         conf=[] # Cria uma lista que armazenará os REs dos mensalistas para que não haja duplicidade nos dados
-        for type in ws['AR'][1:]:
-            if type.value == "MENSAL.":
-                nome = ws[f'B{type.row}'].value
-                re = ws[f'A{type.row}'].value
-                email = ws[f'Q{type.row}'].value
-                if re not in conf: # Utilizando o array para evitar duplicidade
-                    mensalistas.append({'nome': nome, 're': re, 'email': email}) # Armazena os dados na lista
-                    conf.append(re)
+        for type in ws['DE'][2:]:
+            if type.value == "Mensalista":
+                if ws[f'B{type.row}'].value == datetime.datetime(2024,2,15):
+                    nome = ''
+                    re = ws[f'CF{type.row}'].value
+                    email = ws[f'Q{type.row}'].value
+                    for mail in wb['Initial Imput DO&TA']['C'][1:]:
+                        if mail.value == email:
+                            nome = wb['Initial Imput DO&TA'][f'B{mail.row}'].value
+                            nome = nome.replace('\t', '')
+                    if re not in conf: # Utilizando o array para evitar duplicidade
+                        mensalistas.append({'nome': nome, 're': re, 'email': email}) # Armazena os dados na lista
+                        conf.append(re)
+        mensalistas = sorted(mensalistas, key=lambda x: x['re'])
         return mensalistas
 
     def save_docusign_send_data(array:list):
@@ -147,7 +153,7 @@ class SheetsController:
         for i, data in enumerate(array):
             ws.cell(column=1+i, row=row, value=data)
         wb.save('data/docusign_data.xlsx')
-        
+
     def get_signed_contracts():
         try:
             wb = load_workbook('data/docusign_data.xlsx')
@@ -163,7 +169,7 @@ class SheetsController:
                 contrato = f'CONTRATO DE TRABALHO - {nome} - {re}'
                 to_colect.append({"contrato": contrato, "linha": row})
         return to_colect
-        
+
     def save_dicusign_colect_data(row):
         try:
             wb = load_workbook('data/docusign_data.xlsx')
