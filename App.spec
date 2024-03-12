@@ -3,7 +3,7 @@
 
 a = Analysis(
     ['App.py'],
-    pathex=[],
+    pathex=['src/controllers'],
     binaries=[],
     datas=[
         ('media', 'media/'),

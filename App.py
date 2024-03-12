@@ -1,4 +1,3 @@
-import sys
 import os
 from src.models.sheets import SheetsModel
 from src.controllers.sheets import SheetsController
