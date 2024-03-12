@@ -4,7 +4,6 @@ import sys
 sys.path.append(r'c:\\Users\\DESOUR10\\Desktop\\Clone das Demandas\\admissao\\src\\controllers')
 import datetime
 from openpyxl import load_workbook, Workbook
-from docusign import DocusignController
 
 class SheetsController:
     def start_process(checkList, conferencia, contas, dependentes, eSocial, workForce, folder_path, check, forAcesso):
