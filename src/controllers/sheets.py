@@ -1,7 +1,5 @@
 import os
-import sys
 
-sys.path.append(r'c:\\Users\\DESOUR10\\Desktop\\Clone das Demandas\\admissao\\src\\controllers')
 import datetime
 from openpyxl import load_workbook, Workbook
 
