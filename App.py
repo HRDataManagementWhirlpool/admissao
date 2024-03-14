@@ -7,6 +7,9 @@ from src.controllers.pdf import PdfController
 import bcrypt
 import customtkinter
 
+import sys
+sys.path.append(os.getcwd())
+
 from PIL import Image
 import threading
 
