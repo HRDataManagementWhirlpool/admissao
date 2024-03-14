@@ -7,8 +7,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import ElementClickInterceptedException
 import time
 import os
-import sys
-sys.path.append(os.getcwd())
 
 class DocusignController:
     def __init__(self, email, senha):
